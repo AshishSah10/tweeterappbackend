@@ -6,8 +6,11 @@ import com.cognizant.tweeterapp.tweeterapp.model.User;
 import com.cognizant.tweeterapp.tweeterapp.model.UserTweetReplied;
 import com.cognizant.tweeterapp.tweeterapp.repository.UserRepository;
 import com.cognizant.tweeterapp.tweeterapp.service.UserService;
+import com.cognizant.tweeterapp.tweeterapp.service.passwordencoder.Encrypt;
+import org.aspectj.lang.annotation.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,14 +20,21 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
+
 
 @RestController
 @RequestMapping("/api/v1.0/tweets")
 public class UserController {
 
-    Logger logger = LoggerFactory.getLogger(TweeterappApplication.class);
+    private Logger logger = LoggerFactory.getLogger(TweeterappApplication.class);
 
     private UserService userService;
+
+    @Autowired
+    private Encrypt encrypt;
+
 
     @Autowired
     public UserController(@Qualifier("userServiceImpl")UserService theUserService) {
@@ -52,11 +62,15 @@ public class UserController {
 
     @GetMapping("/login")
     public boolean login(@RequestBody User.UserBuilder userBuilder)throws InvalidParameterException{
-        User user = userService.getUserByLoginIdAndPassword(userBuilder.getLoginId(), userBuilder.getPassword());
+        User user = userService.getUserByLoginId(userBuilder.getLoginId());
         if(user == null){
-            logger.info("Invalid username or passoword");
+            logger.info("Invalid username");
             return false;
         }
+        if(!encrypt.matchPassword(userBuilder.getPassword(), user.getPassword())){
+            logger.info("Invalid Password");
+        }
+
         logger.info("user: "+user+" successfully loggedIn");
         return true;
     }

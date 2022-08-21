@@ -8,6 +8,7 @@ import com.cognizant.tweeterapp.tweeterapp.repository.TweetRepository;
 import com.cognizant.tweeterapp.tweeterapp.repository.UserRepository;
 import com.cognizant.tweeterapp.tweeterapp.repository.UserTweetLikedRepository;
 import com.cognizant.tweeterapp.tweeterapp.repository.UserTweetRepliedRepository;
+import com.cognizant.tweeterapp.tweeterapp.service.passwordencoder.Encrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -32,6 +33,9 @@ public class UserServiceImpl implements UserService{
     @Autowired
     private UserTweetRepliedRepository userTweetRepliedRepository;
 
+    @Autowired
+    private Encrypt encrypt;
+
 
 
     @Autowired
@@ -41,6 +45,8 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public void saveUser(User user) {
+        String hashedPassword = encrypt.encodePassword(user.getPassword());
+        user.setNewPassword(hashedPassword);
         this.userRepository.save(user);
     }
 
