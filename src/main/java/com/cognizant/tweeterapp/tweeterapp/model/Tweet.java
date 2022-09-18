@@ -20,11 +20,32 @@ public class Tweet {
 
     private Set<String> tagSet;
 
+    private int likeCount = 0;
+
+    public int getLikeCount() {
+        return likeCount;
+    }
+
+    public void setLikeCount(int likeCount) {
+        this.likeCount = likeCount;
+    }
+
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private Date tweetCreatedDateTime;
 
 
-    //private User tweetCreator;
+
+
+    //@DocumentReference(lookup="{'users':?#{#self._id} }")
+    private String tweetCreatorId;
+
+    public String getTweetCreatorId() {
+        return tweetCreatorId;
+    }
+
+    public void setTweetCreatorId(String tweetCreatorId) {
+        this.tweetCreatorId = tweetCreatorId;
+    }
     //private Set<User> likedUserSet;
     //private List<ReplyTweet> replyTweetList;
 
@@ -63,14 +84,14 @@ public class Tweet {
 
     }
 
-
     @Override
     public String toString() {
         return "Tweet{" +
                 "id='" + id + '\'' +
                 ", tweetMessage='" + tweetMessage + '\'' +
-                ", tweetCreatedDateTime=" + tweetCreatedDateTime +
                 ", tagSet=" + tagSet +
+                ", tweetCreatedDateTime=" + tweetCreatedDateTime +
+                ", tweetCreatorId='" + tweetCreatorId + '\'' +
                 '}';
     }
 }

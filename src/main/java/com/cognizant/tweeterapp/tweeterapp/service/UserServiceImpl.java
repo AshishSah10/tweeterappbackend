@@ -1,5 +1,6 @@
 package com.cognizant.tweeterapp.tweeterapp.service;
 
+import com.cognizant.tweeterapp.tweeterapp.TweeterappApplication;
 import com.cognizant.tweeterapp.tweeterapp.model.Tweet;
 import com.cognizant.tweeterapp.tweeterapp.model.User;
 import com.cognizant.tweeterapp.tweeterapp.model.UserTweetLiked;
@@ -9,6 +10,8 @@ import com.cognizant.tweeterapp.tweeterapp.repository.UserRepository;
 import com.cognizant.tweeterapp.tweeterapp.repository.UserTweetLikedRepository;
 import com.cognizant.tweeterapp.tweeterapp.repository.UserTweetRepliedRepository;
 import com.cognizant.tweeterapp.tweeterapp.service.passwordencoder.Encrypt;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -21,6 +24,7 @@ import java.util.Set;
 @Service
 public class UserServiceImpl implements UserService{
 
+    private Logger logger = LoggerFactory.getLogger(TweeterappApplication.class);
 
     private UserRepository userRepository;
 
@@ -51,6 +55,11 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
+    public User findUserByUserId(String userId) {
+        return userRepository.findById(userId).get();
+    }
+
+    @Override
     public User getUserByLoginIdAndPassword(String loginId, String password) {
         User user = this.userRepository.findUserByLoginId(loginId);
         System.out.println(user);
@@ -78,12 +87,15 @@ public class UserServiceImpl implements UserService{
         Tweet tweet = tweetRepository.findById(tweetId).get();
 
         if(userTweetLikedRepository.findByUserIdAndTweetId(user.getId(), tweet.getId()).size() == 1){
-            return userTweetLikedRepository.findByTweetId(tweetId).size();
+            return tweetRepository.findById(tweetId).get().getLikeCount();
         }
 
         UserTweetLiked userTweetLiked = new UserTweetLiked(user, tweet);
+        Tweet likedTweet = tweetRepository.findById(tweetId).get();
+        likedTweet.setLikeCount(likedTweet.getLikeCount() + 1);
+        Tweet savedLikedTweet = tweetRepository.save(likedTweet);
         userTweetLikedRepository.save(userTweetLiked);
-        return userTweetLikedRepository.findByTweetId(tweetId).size();
+        return savedLikedTweet.getLikeCount();
     }
 
     @Override
@@ -97,6 +109,7 @@ public class UserServiceImpl implements UserService{
            throw new InvalidParameterException("tweet not found");
        }
 
+       logger.info(repliedMessage);
        Set<String> repliedTagSet = TweetService.generatedTagsFromMessage(repliedMessage);
 
        UserTweetReplied userTweetReplied = new UserTweetReplied(user, tweet, repliedMessage, repliedTagSet);
@@ -121,9 +134,14 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
+    public User getUserByEmail(String email) {
+        return this.userRepository.findUserByEmail(email);
+    }
+
+    @Override
     public User updatePassword(User user, String newPassword) {
         user.setNewPassword(newPassword);
-        this.userRepository.save(user);
+        this.saveUser(user);
         return user;
     }
 }

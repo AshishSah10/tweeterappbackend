@@ -44,6 +44,7 @@ public class TweetServiceImpl implements TweetService {
         Tweet tweet = new Tweet(tweetMessage, tagSet);
         User user = userRepository.findByLoginId(loginId).get(0);
         if(user != null){
+            tweet.setTweetCreatorId(user.getId());
             tweet = tweetRepository.save(tweet);
             user.addTweetToUserTweetList(tweet);
             userRepository.save(user);
@@ -115,6 +116,8 @@ public class TweetServiceImpl implements TweetService {
         return "Tweet is successfully deleted";
     }
 
-
-
+    @Override
+    public List<UserTweetReplied> getRepliesOfTweet(String tweetId){
+        return userTweetRepliedRepository.findByTweetId(tweetId);
+    }
 }

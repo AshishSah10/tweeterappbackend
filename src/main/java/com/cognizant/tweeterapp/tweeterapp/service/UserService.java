@@ -10,11 +10,15 @@ public interface UserService {
 
     public void saveUser(User user);
 
+    User findUserByUserId(String userId);
+
     public List<User> getAllUsers();
 
     public List<User> getUsersByLoginId(String loginId);
 
     public User getUserByLoginId(String loginId);
+
+    public User getUserByEmail(String email);
 
     public User updatePassword(User user, String newPassword);
 

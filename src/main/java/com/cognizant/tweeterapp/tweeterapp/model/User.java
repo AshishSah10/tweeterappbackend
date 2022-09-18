@@ -88,14 +88,12 @@ public class User {
     @Override
     public String toString() {
         return "User{" +
-                "id='" + id + '\'' +
-                ", firstName='" + firstName + '\'' +
-                ", lastName='" + lastName + '\'' +
-                ", email='" + email + '\'' +
-                ", loginId='" + loginId + '\'' +
-                ", password='" + password + '\'' +
-                ", contactNo=" + contactNo +
-                '}';
+                ", loginId='" + loginId;
+    }
+
+    @Override
+    public int hashCode() {
+        return this.loginId.hashCode();
     }
 
     public static UserBuilder getUserBuilder(){
