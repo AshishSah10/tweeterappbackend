@@ -129,8 +129,12 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public User getUserByLoginId(String loginId) {
-        User user = this.userRepository.findByLoginId(loginId).get(0);
-        return user;
+        User user = null;
+        List<User> userList = this.userRepository.findByLoginId(loginId);
+        if(userList.isEmpty()){
+            return null;
+        }
+        return userList.get(0);
     }
 
     @Override

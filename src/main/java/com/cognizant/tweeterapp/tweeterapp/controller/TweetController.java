@@ -23,6 +23,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.net.http.HttpResponse;
 import java.security.Key;
 import java.util.*;
 
@@ -37,6 +40,9 @@ public class TweetController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private HttpServletResponse httpServletResponse;
+
 
     Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 
@@ -49,13 +55,17 @@ public class TweetController {
 
 
     @PostMapping("/all")
-    public CreateGetAllTweetsResponseDto getAllTweets(@RequestHeader HttpHeaders requestHeaders){
+    public CreateGetAllTweetsResponseDto getAllTweets(@RequestHeader HttpHeaders requestHeaders) throws IOException {
 
         logger.info(""+requestHeaders.get("Authorization"));
         String authToken = requestHeaders.get("Authorization").get(0);
 
-        User LoggedInUser = Authenticate.authentication(key, authToken);
-
+        String loggedInUserId = Authenticate.authentication(key, authToken);
+        if(loggedInUserId == null){
+            httpServletResponse.setStatus(403);
+            httpServletResponse.sendError(403, "Unauthorised access");
+            return null;
+        }
         List<Tweet> tweetList = new ArrayList<>();
         tweetList = this.tweetService.getAllTweets();
 
@@ -77,21 +87,21 @@ public class TweetController {
     public Tweet postNewTweet(@RequestHeader HttpHeaders requestHeaders, @PathVariable String loginId, @RequestBody TweetMessage tweetMessage){
         String message = tweetMessage.getTweetMessage();
         String authToken = requestHeaders.get("Authorization").get(0);
-        User user = Authenticate.authentication(key, authToken);
+        String userId = Authenticate.authentication(key, authToken);
         return this.tweetService.createNewTweet(message, loginId);
     }
 
     @PutMapping("/{loginId}/update/{tweetId}")
     public Tweet updateTweet(@RequestHeader HttpHeaders requestHeaders, @RequestBody TweetMessage newTweetMessage, @PathVariable String tweetId, @PathVariable String loginId){
         String authToken = requestHeaders.get("Authorization").get(0);
-        User user = Authenticate.authentication(key, authToken);
+        String userId = Authenticate.authentication(key, authToken);
         return this.tweetService.updateTweet(newTweetMessage.getTweetMessage(), tweetId, loginId);
     }
 
     @DeleteMapping("{loginId}/delete/{tweetId}")
     public String deleteTweetById(@RequestHeader HttpHeaders requestHeaders, @PathVariable String loginId, @PathVariable String tweetId){
         String authToken = requestHeaders.get("Authorization").get(0);
-        User user = Authenticate.authentication(key, authToken);
+        String userId = Authenticate.authentication(key, authToken);
         return this.tweetService.deleteTweetById(loginId, tweetId);
     }
 
@@ -104,7 +114,7 @@ public class TweetController {
     @PostMapping("/tweetReplies/{tweetId}")
     public List<UserTweetReplied> getRepliesOfTweet(@RequestHeader HttpHeaders requestHeaders, @PathVariable String tweetId){
         String authToken = requestHeaders.get("Authorization").get(0);
-        User user = Authenticate.authentication(key, authToken);
+        String userId = Authenticate.authentication(key, authToken);
         return tweetService.getRepliesOfTweet(tweetId);
     }
 }

@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.security.Key;
+import java.util.Base64;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -97,11 +98,18 @@ public class UserController {
             return null;
         }
 
-
-        String jws = Jwts.builder()
+        byte[] secret = Base64.getDecoder().decode("lNGXJ9dEpQ9aK3wSvlJQWBMzEJs241fnCVJd4CFi61o=");
+        /*String jws = Jwts.builder()
                 .claim("user", (User)user)
                 .signWith(key)
+                .compact();*/
+
+        String jws = Jwts.builder()
+                .claim("userId",  user.getId())
+                .signWith(Keys.hmacShaKeyFor(secret))
                 .compact();
+
+
         Cookie cookie = new Cookie("authToken", jws);
         cookie.setPath("/api/v1.0/tweets");
         cookie.setDomain("localhost");
@@ -139,7 +147,7 @@ public class UserController {
 
     @GetMapping("/users/all")
     public List<User> getAllUsers(@CookieValue(value = "authToken", defaultValue = "") String authToken) {
-        User user = Authenticate.authentication(key, authToken);
+        String userId = Authenticate.authentication(key, authToken);
 
         List<User> userList = userService.getAllUsers();
         return userList;
@@ -147,7 +155,7 @@ public class UserController {
 
     @GetMapping("/user/search/{loginId}")
     public List<User> searchUsersByLoginId(@PathVariable String loginId, @CookieValue(value = "authToken", defaultValue = "") String authToken){
-        User user = Authenticate.authentication(key, authToken);
+        String userId = Authenticate.authentication(key, authToken);
         List<User> userList = userService.getUsersByLoginId(loginId);
         return userList;
     }
@@ -155,7 +163,7 @@ public class UserController {
 
     @GetMapping("/{loginId}")
     public List<Tweet> getAllTweetsOfUser(@PathVariable String loginId, @CookieValue(value = "authToken", defaultValue = "") String authToken){
-        User user = Authenticate.authentication(key, authToken);
+        String userId = Authenticate.authentication(key, authToken);
         return userService.getAllTweets(loginId);
     }
 
@@ -163,14 +171,14 @@ public class UserController {
     @PutMapping("{loginId}/like/{tweetId}")
     public int userLikedTweet(@PathVariable String loginId, @PathVariable String tweetId, @RequestHeader HttpHeaders requestHeaders){
         String authToken = requestHeaders.get("Authorization").get(0);
-        User user = Authenticate.authentication(key, authToken);
+        String userId = Authenticate.authentication(key, authToken);
         return userService.tweetLikedByUser(loginId, tweetId);
     }
 
     @PostMapping("{loginId}/reply/{tweetId}")
     public UserTweetReplied userRepliedToTweet(@RequestHeader HttpHeaders requestHeaders, @RequestBody TweetMessage repliedMessage, @PathVariable String loginId, @PathVariable String tweetId){
         String authToken = requestHeaders.get("Authorization").get(0);
-        User user = Authenticate.authentication(key, authToken);
+        String userId = Authenticate.authentication(key, authToken);
         logger.info(""+repliedMessage.getTweetMessage());
         //return null;
         return userService.tweetRepliedByUser(repliedMessage.getTweetMessage(), loginId, tweetId);
