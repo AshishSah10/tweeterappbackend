@@ -29,7 +29,7 @@ import java.net.http.HttpResponse;
 import java.security.Key;
 import java.util.*;
 
-@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
+@CrossOrigin(origins = "http://tweeter-frontend-app.s3-website-us-east-1.amazonaws.com", allowCredentials = "true")
 @RestController
 @RequestMapping("/api/v1.0/tweets")
 public class TweetController {

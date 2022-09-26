@@ -37,7 +37,7 @@ import javax.crypto.SecretKey;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
-@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
+@CrossOrigin(origins = "http://tweeter-frontend-app.s3-website-us-east-1.amazonaws.com", allowCredentials = "true")
 @RestController
 @RequestMapping("/api/v1.0/tweets")
 public class UserController {
